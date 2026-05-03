@@ -1,0 +1,194 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "risk-analiz",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "08cec1ac-0f05-46ff-a834-c167e8bdacc8",
+      "name": "Webhook",
+      "webhookId": "156810c8-bd14-4939-93be-b6d083df5b7f"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Sen kıdemli bir siber güvenlik analistisin. Sana verilen kullanıcının giriş verilerini analiz ederek 0 ile 100 arasında bir Risk Skoru belirle. (Örneğin normalde Kastamonu'dan giren birisi şimdi Çin'den giriyorsa risk çok yüksektir).\n\n\nLütfen yanıtını SADECE aşağıdaki JSON formatında ver, başka hiçbir metin ekleme:\n{\n\"risk_score\": [0-100 arası sayı],\n\"reason\": \"[Puanı neden verdiğine dair kısa açıklama]\"\n{{ $json.body.Kullanici_ID }}\n{{ $json.body.IP_Adresi }}\n{{ $json.body.Konum }}\n{{ $json.body.Cihaz }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "751599e0-a92c-496a-a268-9be45545ae16",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "oneZB7ZUWz2Uer9G",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1vAhC7eWs5XrQ8aVhs3tGQkAN7bjXy-S1qS0QHLrJ1E4",
+          "mode": "list",
+          "cachedResultName": "Risk_Skorlama_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vAhC7eWs5XrQ8aVhs3tGQkAN7bjXy-S1qS0QHLrJ1E4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sayfa1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vAhC7eWs5XrQ8aVhs3tGQkAN7bjXy-S1qS0QHLrJ1E4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Kullanici_ID": "={{ $('Webhook').item.json.body.Kullanici_ID }}",
+            "IP_Adresi": "={{ $('Webhook').item.json.body.IP_Adresi }}",
+            "Konum": "={{ $('Webhook').item.json.body.Konum }}",
+            "Cihaz": "={{ $('Webhook').item.json.body.Cihaz }}",
+            "YapayZeka_Aciklamasi": "={{ $json.output[0].content[0].text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Kullanici_ID",
+              "displayName": "Kullanici_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IP_Adresi",
+              "displayName": "IP_Adresi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Konum",
+              "displayName": "Konum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cihaz",
+              "displayName": "Cihaz",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Risk_Skoru",
+              "displayName": "Risk_Skoru",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YapayZeka_Aciklamasi",
+              "displayName": "YapayZeka_Aciklamasi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        0
+      ],
+      "id": "7d6ee4aa-cccc-4aa4-8c34-14170a0a4d97",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "F3Q2TtAQzTZjp0Rx",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ba784e5d-bd61-4c82-b0a8-6e16eb3f8d17",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e1155f6d89b25299cbe7a3f5ac88911972b6e23384ca500112629b69e1d7fd88"
+  },
+  "id": "28Rq8v66SHy5hkeN",
+  "tags": []
+}
